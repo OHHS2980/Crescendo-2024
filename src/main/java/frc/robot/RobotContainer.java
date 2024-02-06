@@ -9,6 +9,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -20,7 +21,9 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OIConstants;
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.commands.ShooterCmd;
 import frc.robot.commands.swervedrive.drivebase.AbsoluteDriveAdv;
+import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import java.io.File;
 
@@ -35,10 +38,12 @@ public class RobotContainer
   // The robot's subsystems and commands are defined here...
   private final SwerveSubsystem drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
                                                                          "swerve/neo"));
+  private final ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
+
   // CommandJoystick rotationController = new CommandJoystick(1);
   // Replace with CommandPS4Controller or CommandJoystick if needed
-  CommandJoystick driverJoystick = new CommandJoystick(OIConstants.DriveJoystick);
-  CommandJoystick driverTurn = new CommandJoystick(OIConstants.TurnJoystick);
+  Joystick driverJoystick = new Joystick(OIConstants.DriveJoystick);
+  Joystick driverTurn = new Joystick(OIConstants.TurnJoystick);
 
   // CommandJoystick driverController   = new CommandJoystick(3);//(OperatorConstants.DRIVER_CONTROLLER_PORT);
 
@@ -49,19 +54,24 @@ public class RobotContainer
   {
     // Configure the trigger bindings
     configureBindings();
-/*
+
+    ShooterCmd shooterCmd = new ShooterCmd(shooterSubsystem,
+    () -> driverJoystick.getRawAxis(3),
+    () -> driverJoystick.getRawButton(1),
+    () -> driverTurn.getRawButton(1));
+
     AbsoluteDriveAdv closedAbsoluteDriveAdv = new AbsoluteDriveAdv(drivebase,
                                                                    () -> MathUtil.applyDeadband(driverJoystick.getRawAxis(OIConstants.TranslationY),
                                                                                                 OperatorConstants.LEFT_Y_DEADBAND),
                                                                    () -> MathUtil.applyDeadband(driverJoystick.getRawAxis(OIConstants.TranslationX),
                                                                                                 OperatorConstants.LEFT_X_DEADBAND),
-                                                                   () -> MathUtil.applyDeadband(turnJoystick.getRawAxis(OIConstants.Rotation),
+                                                                   () -> MathUtil.applyDeadband(driverTurn.getRawAxis(OIConstants.Rotation),
                                                                                                 OperatorConstants.RIGHT_X_DEADBAND),
-                                                                   driverXbox::getYButtonPressed,
-                                                                   driverXbox::getAButtonPressed,
-                                                                   driverXbox::getXButtonPressed,
-                                                                   driverXbox::getBButtonPressed);
-*/
+                                                                   () -> POVAway(),
+                                                                   () -> POVTowards(),
+                                                                   () -> POVLeft(),
+                                                                   () -> POVRight());
+
     // Applies deadbands and inverts controls because joysticks
     // are back-right positive while robot
     // controls are front-left positive
@@ -95,6 +105,8 @@ public class RobotContainer
 
     drivebase.setDefaultCommand(
         !RobotBase.isSimulation() ? driveFieldOrientedAnglularVelocity : driveFieldOrientedAnglularVelocity);
+
+    shooterSubsystem.setDefaultCommand(shooterCmd);
   }
 
   /**
@@ -107,15 +119,15 @@ public class RobotContainer
   private void configureBindings()
   {
     // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
-/* 
-    new JoystickButton(driverXbox, 1).onTrue((new InstantCommand(drivebase::zeroGyro)));
-    new JoystickButton(driverXbox, 3).onTrue(new InstantCommand(drivebase::addFakeVisionReading));
-    new JoystickButton(driverXbox,
-                       2).whileTrue(
+
+    new JoystickButton(driverJoystick, 2).onTrue((new InstantCommand(drivebase::zeroGyro)));
+    //new JoystickButton(driverXbox, 3).onTrue(new InstantCommand(drivebase::addFakeVisionReading));
+    new JoystickButton(driverJoystick,
+                       3).whileTrue(
         Commands.deferredProxy(() -> drivebase.driveToPose(
-                                   new Pose2d(new Translation2d(4, 4), Rotation2d.fromDegrees(0)))
+                                   new Pose2d(new Translation2d(0, 0), Rotation2d.fromDegrees(0)))
                               ));
-                              */
+                              
 //    new JoystickButton(driverXbox, 3).whileTrue(new RepeatCommand(new InstantCommand(drivebase::lock, drivebase)));
   }
 
@@ -138,5 +150,21 @@ public class RobotContainer
   public void setMotorBrake(boolean brake)
   {
     drivebase.setMotorBrake(brake);
+  }
+
+  public boolean POVAway(){
+    return driverTurn.getPOV() == 0;
+  }
+
+  public boolean POVLeft(){
+    return driverTurn.getPOV() == 270;
+  }
+
+  public boolean POVRight(){
+    return driverTurn.getPOV() == 90;
+  }
+
+  public boolean POVTowards(){
+    return driverTurn.getPOV() == 180;
   }
 }

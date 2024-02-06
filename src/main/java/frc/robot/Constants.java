@@ -51,4 +51,9 @@ public final class Constants
     public static final int DriveJoystick  = 0;
     public static final int TurnJoystick = 1;
   }
+
+  public static class shooterConstants
+  {
+    public static final double maxSpeed = 30;
+  }
 }
