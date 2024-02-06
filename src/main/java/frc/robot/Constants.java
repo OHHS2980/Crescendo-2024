@@ -54,6 +54,27 @@ public final class Constants
 
   public static class shooterConstants
   {
+    public static final int flywheelLeftID = 14;
+    public static final int flywheelRightID = 15;
+    public static final int stagingLeftID = 13;
+    public static final int stagingRightID = 12;
+    public static final int pivotID = 11;
+
     public static final double maxSpeed = 30;
+
+    public static final double minArmEncoder = 0.4;
+    public static final double maxArmEncoder = 0.5;
+
+    public static final int armEncoderPort = 0;
   }
+
+  public static class intakeConstants
+  {
+    public static final int intakeLeftID = 9;
+    public static final int intakeRightID = 10;
+
+    public static final int initialBeamSensor = 1;
+    public static final int finalBeamSensor = 2;
+  }
+
 }

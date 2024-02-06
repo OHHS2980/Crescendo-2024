@@ -21,8 +21,11 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OIConstants;
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.Constants.intakeConstants;
+import frc.robot.commands.IntakeCmd;
 import frc.robot.commands.ShooterCmd;
 import frc.robot.commands.swervedrive.drivebase.AbsoluteDriveAdv;
+import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import java.io.File;
@@ -39,6 +42,7 @@ public class RobotContainer
   private final SwerveSubsystem drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
                                                                          "swerve/neo"));
   private final ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
+  private final IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
 
   // CommandJoystick rotationController = new CommandJoystick(1);
   // Replace with CommandPS4Controller or CommandJoystick if needed
@@ -58,7 +62,12 @@ public class RobotContainer
     ShooterCmd shooterCmd = new ShooterCmd(shooterSubsystem,
     () -> driverJoystick.getRawAxis(3),
     () -> driverJoystick.getRawButton(1),
-    () -> driverTurn.getRawButton(1));
+    () -> driverTurn.getRawButton(1),
+    () -> driverTurn.getRawAxis(3));
+
+    IntakeCmd intakeCmd = new IntakeCmd(intakeSubsystem,
+    () -> driverTurn.getRawButton(1),
+    () -> driverTurn.getRawButton(3));
 
     AbsoluteDriveAdv closedAbsoluteDriveAdv = new AbsoluteDriveAdv(drivebase,
                                                                    () -> MathUtil.applyDeadband(driverJoystick.getRawAxis(OIConstants.TranslationY),
@@ -107,6 +116,7 @@ public class RobotContainer
         !RobotBase.isSimulation() ? driveFieldOrientedAnglularVelocity : driveFieldOrientedAnglularVelocity);
 
     shooterSubsystem.setDefaultCommand(shooterCmd);
+    intakeSubsystem.setDefaultCommand(intakeCmd);
   }
 
   /**
