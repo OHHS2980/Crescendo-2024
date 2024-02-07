@@ -11,11 +11,9 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -80,18 +78,6 @@ public class RobotContainer
                                                                    () -> POVTowards(),
                                                                    () -> POVLeft(),
                                                                    () -> POVRight());
-
-    // Applies deadbands and inverts controls because joysticks
-    // are back-right positive while robot
-    // controls are front-left positive
-    // left stick controls translation
-    // right stick controls the desired angle NOT angular rotation
-    Command driveFieldOrientedDirectAngle = drivebase.driveCommand(() -> MathUtil.applyDeadband(driverJoystick.getRawAxis(OIConstants.TranslationY),
-                                                                                                OperatorConstants.LEFT_Y_DEADBAND),
-                                                                   () -> MathUtil.applyDeadband(driverJoystick.getRawAxis(OIConstants.TranslationX),
-                                                                                                OperatorConstants.LEFT_X_DEADBAND),
-        () -> -driverTurn.getRawAxis(0),
-        () -> -driverTurn.getRawAxis(1));
 
     // Applies deadbands and inverts controls because joysticks
     // are back-right positive while robot

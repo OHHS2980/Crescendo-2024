@@ -66,6 +66,14 @@ public final class Constants
     public static final double maxArmEncoder = 0.5;
 
     public static final int armEncoderPort = 0;
+
+    public static double shooterP = 0.005;
+    public static double shooterI = 0.0;
+    public static double shooterD = 0.0;
+
+    public static double armP = 0.005;
+    public static double armI = 0.0;
+    public static double armD = 0.0;
   }
 
   public static class intakeConstants

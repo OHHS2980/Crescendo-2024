@@ -10,8 +10,8 @@ public class ShooterSubsystem extends SubsystemBase{
     private final CANSparkMax shooterLeftMotor = new CANSparkMax(shooterConstants.flywheelLeftID, MotorType.kBrushless);
     private final CANSparkMax shooterRightMotor = new CANSparkMax(shooterConstants.flywheelRightID, MotorType.kBrushless);
 
-    private final CANSparkMax feedRightMotor = new CANSparkMax(shooterConstants.stagingRightID, MotorType.kBrushed);
-    private final CANSparkMax feedLeftMotor = new CANSparkMax(shooterConstants.stagingLeftID, MotorType.kBrushed);
+    private final CANSparkMax feedRightMotor = new CANSparkMax(shooterConstants.stagingRightID, MotorType.kBrushless);
+    private final CANSparkMax feedLeftMotor = new CANSparkMax(shooterConstants.stagingLeftID, MotorType.kBrushless);
 
     
     private final CANSparkMax shooterArmMotor = new CANSparkMax(shooterConstants.pivotID, MotorType.kBrushless);
@@ -21,8 +21,23 @@ public class ShooterSubsystem extends SubsystemBase{
         shooterRightMotor.set(power);
     }
 
+    public void setShooterSpeed(double velocity){
+        shooterLeftMotor.getPIDController().setReference(velocity, CANSparkMax.ControlType.kSmartVelocity);
+        shooterRightMotor.getPIDController().setReference(velocity, CANSparkMax.ControlType.kSmartVelocity);
+    }
+
     public void setArmVoltage(double power){
         shooterArmMotor.set(power);
+    }
+
+    public void setShooterValues(double p, double i, double d){
+        shooterLeftMotor.getPIDController().setP(p);
+        shooterLeftMotor.getPIDController().setP(i);
+        shooterLeftMotor.getPIDController().setP(d);
+        
+        shooterRightMotor.getPIDController().setP(p);
+        shooterRightMotor.getPIDController().setP(i);
+        shooterRightMotor.getPIDController().setP(d);
     }
 
     public double getShooterSpeed(){
