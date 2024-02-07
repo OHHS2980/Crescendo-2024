@@ -39,20 +39,21 @@ public final class Constants
     public static final double LEFT_X_DEADBAND  = 0.1;
     public static final double LEFT_Y_DEADBAND  = 0.1;
     public static final double RIGHT_X_DEADBAND = 0.1;
+
     public static final double TURN_CONSTANT    = 6;
   }
   public static class OIConstants
   {
-    // Joystick Deadband
     public static final int TranslationY  = 1;
     public static final int TranslationX  = 0;
     public static final int Rotation = 0;
 
     public static final int DriveJoystick  = 0;
     public static final int TurnJoystick = 1;
+    public static final int operatorJoystick = 2;
   }
 
-  public static class shooterConstants
+  public static class ShooterConstants
   {
     public static final int flywheelLeftID = 14;
     public static final int flywheelRightID = 15;
@@ -62,8 +63,12 @@ public final class Constants
 
     public static final double maxSpeed = 30;
 
-    public static final double minArmEncoder = 0.4;
-    public static final double maxArmEncoder = 0.5;
+    public static final double StowedArmDeg = 0;//tune these
+    public static final double subwooferArmDeg = 0;
+    public static final double ampArmDeg = 0;
+
+    public static final double ampShooterVel = 0;
+    public static final double subwooferShooterVel = 0;
 
     public static final int armEncoderPort = 0;
 
@@ -76,13 +81,28 @@ public final class Constants
     public static double armD = 0.0;
   }
 
-  public static class intakeConstants
+  public static class IntakeConstants
   {
     public static final int intakeLeftID = 9;
     public static final int intakeRightID = 10;
 
-    public static final int initialBeamSensor = 1;
-    public static final int finalBeamSensor = 2;
+    public static final int initialBeamSensorPort = 1;
+    public static final int finalBeamSensorPort = 2;
+  }
+
+  public static class ClimberConstants
+  {
+    public static final int climberLeftID = 16;
+    public static final int climberRightID = 17;
+
+    public static final double stowedEncoderVal = 0;
+    public static final double maxEncoderVal = 0;
+
+    public static final double positionConversionFactor = 0;
+
+    public static double climberP = 0.005;
+    public static double climberI = 0.0;
+    public static double climberD = 0.0;
   }
 
 }

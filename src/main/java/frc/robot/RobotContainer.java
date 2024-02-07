@@ -14,44 +14,30 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OIConstants;
 import frc.robot.Constants.OperatorConstants;
-import frc.robot.Constants.intakeConstants;
+import frc.robot.commands.ClimberCmd;
 import frc.robot.commands.IntakeCmd;
 import frc.robot.commands.ShooterCmd;
 import frc.robot.commands.swervedrive.drivebase.AbsoluteDriveAdv;
+import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import java.io.File;
 
-/**
- * This class is where the bulk of the robot should be declared. Since Command-based is a "declarative" paradigm, very
- * little robot logic should actually be handled in the {@link Robot} periodic methods (other than the scheduler calls).
- * Instead, the structure of the robot (including subsystems, commands, and trigger mappings) should be declared here.
- */
-public class RobotContainer
-{
-
+public class RobotContainer {
   // The robot's subsystems and commands are defined here...
-  private final SwerveSubsystem drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
-                                                                         "swerve/neo"));
+  private final SwerveSubsystem drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(), "swerve/neo"));
   private final ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
-  private final IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
+  //private final IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
+  //private final ClimberSubsystem climberSubsystem = new ClimberSubsystem();
 
-  // CommandJoystick rotationController = new CommandJoystick(1);
-  // Replace with CommandPS4Controller or CommandJoystick if needed
-  Joystick driverJoystick = new Joystick(OIConstants.DriveJoystick);
-  Joystick driverTurn = new Joystick(OIConstants.TurnJoystick);
+  private Joystick driverJoystick = new Joystick(OIConstants.DriveJoystick);
+  private Joystick driverTurn = new Joystick(OIConstants.TurnJoystick);
+  private Joystick operatorJoystick = new Joystick(OIConstants.operatorJoystick);
 
-  // CommandJoystick driverController   = new CommandJoystick(3);//(OperatorConstants.DRIVER_CONTROLLER_PORT);
-
-  /**
-   * The container for the robot. Contains subsystems, OI devices, and commands.
-   */
   public RobotContainer()
   {
     // Configure the trigger bindings
@@ -63,9 +49,17 @@ public class RobotContainer
     () -> driverTurn.getRawButton(1),
     () -> driverTurn.getRawAxis(3));
 
+/*
     IntakeCmd intakeCmd = new IntakeCmd(intakeSubsystem,
     () -> driverTurn.getRawButton(1),
     () -> driverTurn.getRawButton(3));
+*/
+
+/*
+    ClimberCmd climberCmd = new ClimberCmd(climberSubsystem,
+    () -> driverTurn.getRawButton(1),
+    () -> driverTurn.getRawButton(3));
+*/
 
     AbsoluteDriveAdv closedAbsoluteDriveAdv = new AbsoluteDriveAdv(drivebase,
                                                                    () -> MathUtil.applyDeadband(driverJoystick.getRawAxis(OIConstants.TranslationY),
@@ -102,16 +96,11 @@ public class RobotContainer
         !RobotBase.isSimulation() ? driveFieldOrientedAnglularVelocity : driveFieldOrientedAnglularVelocity);
 
     shooterSubsystem.setDefaultCommand(shooterCmd);
-    intakeSubsystem.setDefaultCommand(intakeCmd);
+    //intakeSubsystem.setDefaultCommand(intakeCmd);
+    //climberSubsystem.setDefaultCommand(climberCmd);
   }
 
-  /**
-   * Use this method to define your trigger->command mappings. Triggers can be created via the
-   * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary predicate, or via the
-   * named factories in {@link edu.wpi.first.wpilibj2.command.button.CommandGenericHID}'s subclasses for
-   * {@link CommandXboxController Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller PS4}
-   * controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight joysticks}.
-   */
+  
   private void configureBindings()
   {
     // Schedule `ExampleCommand` when `exampleCondition` changes to `true`

@@ -6,14 +6,14 @@ import edu.wpi.first.wpilibj.DigitalInput;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.Constants.intakeConstants;
+import frc.robot.Constants.IntakeConstants;
 import frc.robot.subsystems.IntakeSubsystem;
 
 public class IntakeCmd extends Command{
     private final IntakeSubsystem intakeSubsystem;
     
-    private DigitalInput initialBeamSensor = new DigitalInput(intakeConstants.initialBeamSensor);
-    private DigitalInput finalBeamSensor = new DigitalInput(intakeConstants.finalBeamSensor);
+    private DigitalInput initialBeamSensor = new DigitalInput(IntakeConstants.initialBeamSensorPort);
+    private DigitalInput finalBeamSensor = new DigitalInput(IntakeConstants.finalBeamSensorPort);
 
     private BooleanSupplier intake;
     private BooleanSupplier outtake;
@@ -37,7 +37,7 @@ public class IntakeCmd extends Command{
     
     @Override
     public void execute() {
-        if(intake.getAsBoolean()){ 
+        if(intake.getAsBoolean() && !initialBeamSensor.get()){ 
             intakeSubsystem.setIntakeVoltage(1);
         }else if (outtake.getAsBoolean()){
             intakeSubsystem.setIntakeVoltage(-1);

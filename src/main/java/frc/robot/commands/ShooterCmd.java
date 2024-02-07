@@ -3,20 +3,14 @@ package frc.robot.commands;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
-import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.Constants.shooterConstants;
+import frc.robot.Constants.ShooterConstants;
 import frc.robot.subsystems.ShooterSubsystem;
 
 public class ShooterCmd extends Command{
     private final ShooterSubsystem shooterSubsystem; 
-
-    private DutyCycleEncoder armEncoder = new DutyCycleEncoder(shooterConstants.armEncoderPort);
-
-    private PIDController armController;
 
     private DoubleSupplier shooterSlider;
     private DoubleSupplier armSlider;
@@ -38,25 +32,19 @@ public class ShooterCmd extends Command{
         this.feed = feed;
 
         this.shooterSubsystem = shooterSubsystem;
-
-        armEncoder.setDistancePerRotation(360);//set units to degrees
-        armSetpoint = armEncoder.getDistance();
-
-        armController = new PIDController(shooterConstants.shooterP,shooterConstants.shooterI,shooterConstants.shooterD);
-        shooterSubsystem.setShooterValues(shooterConstants.armP, shooterConstants.armI, shooterConstants.armD);;
-
+        
         addRequirements(shooterSubsystem);
     }
 
     @Override
     public void initialize() {
-
+        armSetpoint = shooterSubsystem.getPosotion();
     }
     
     @Override
     public void execute() {
         if(shoot.getAsBoolean()){
-            shooterSubsystem.setShooterSpeed(shooterSlider.getAsDouble() * shooterConstants.maxSpeed);
+            shooterSubsystem.setShooterSpeed(shooterSlider.getAsDouble() * ShooterConstants.maxSpeed);
         }else{
             shooterSubsystem.setShooterVoltage(0);
         }
@@ -66,7 +54,7 @@ public class ShooterCmd extends Command{
         
         //increment setpoint a very small amount based on the slider
         armSetpoint += MathUtil.applyDeadband(armSlider.getAsDouble(), 0.25) * 0.005;
-        shooterSubsystem.setArmVoltage(Math.min(armController.calculate(armEncoder.getDistance(), armSetpoint) ,  0.25));
+        shooterSubsystem.setArmPosition(armSetpoint);
         
 
         if(feed.getAsBoolean()){ 
@@ -74,7 +62,7 @@ public class ShooterCmd extends Command{
         }else{
             shooterSubsystem.stopFeed();
         }
-        SmartDashboard.putNumber("Encoder degrees", armEncoder.getDistance());
+        SmartDashboard.putNumber("Encoder degrees", shooterSubsystem.getPosotion());
         SmartDashboard.putNumber("ShooterSpeed", shooterSubsystem.getShooterSpeed());
     }
     
