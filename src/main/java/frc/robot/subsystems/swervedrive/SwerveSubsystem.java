@@ -5,24 +5,43 @@
 package frc.robot.subsystems.swervedrive;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
+
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.io.File;
+import java.util.Optional;
 import java.util.function.DoubleSupplier;
+
+import org.photonvision.EstimatedRobotPose;
+import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonPoseEstimator;
+import org.photonvision.PhotonPoseEstimator.PoseStrategy;
+import org.photonvision.simulation.PhotonCameraSim;
+import org.photonvision.simulation.SimCameraProperties;
+import org.photonvision.simulation.VisionSystemSim;
+
 import swervelib.SwerveController;
 import swervelib.SwerveDrive;
 import swervelib.math.SwerveMath;
@@ -49,6 +68,19 @@ public class SwerveSubsystem extends SubsystemBase
    *
    * @param directory Directory of swerve drive config files.
    */
+
+    private final VisionSystemSim simVisionSystem = new VisionSystemSim("PhotonVision");
+    private final PhotonCamera photonCamera= new PhotonCamera("Arducam_OV9281_USB_Camera");
+    private PhotonCameraSim photonCameraSim = new PhotonCameraSim(photonCamera);
+    private final SimCameraProperties cameraProp = new SimCameraProperties();
+    
+    private final AprilTagFieldLayout aprilTagFieldLayout = AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
+
+    private final Transform3d robotToCam = new Transform3d(new Translation3d(-0.29845, 0.1143, 0.187325), new Rotation3d(0, -0.436332, Math.PI));
+
+    private final PhotonPoseEstimator photonPoseEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, photonCamera, robotToCam);
+    private EstimatedRobotPose latestEstimatedRobotPose;
+
   public SwerveSubsystem(File directory)
   {
     // Angle conversion factor is 360 / (GEAR RATIO * ENCODER RESOLUTION)
@@ -77,8 +109,29 @@ public class SwerveSubsystem extends SubsystemBase
       throw new RuntimeException(e);
     }
     swerveDrive.setHeadingCorrection(false); // Heading correction should only be used while controlling the robot via angle.
-
+    
     setupPathPlanner();
+
+    // A 640 x 480 camera with a 100 degree diagonal FOV.
+    cameraProp.setCalibration(640, 480, Rotation2d.fromDegrees(75));
+    // Approximate detection noise with average and standard deviation error in pixels.
+    //cameraProp.setCalibError(0.25, 0.08);
+    cameraProp.setCalibError(0, 0);
+    // Set the camera image capture framerate (Note: this is limited by robot loop rate).
+    cameraProp.setFPS(20);
+    // The average and standard deviation in milliseconds of image data latency.
+    cameraProp.setAvgLatencyMs(35);
+    cameraProp.setLatencyStdDevMs(5);
+
+    photonCameraSim = new PhotonCameraSim(photonCamera, cameraProp);
+    photonCameraSim.enableProcessedStream(true);
+    photonCameraSim.enableRawStream(false);
+    photonCameraSim.enableDrawWireframe(false);
+
+    photonCamera.setDriverMode(false);
+
+    simVisionSystem.addCamera(photonCameraSim, robotToCam);
+    simVisionSystem.addAprilTags(aprilTagFieldLayout);
   }
 
   /**
@@ -129,23 +182,24 @@ public class SwerveSubsystem extends SubsystemBase
 
   /**
    * Get the path follower with events.
-   *
+   * 
    * @param pathName       PathPlanner path name.
    * @param setOdomToStart Set the odometry position to the start of the path.
    * @return {@link AutoBuilder#followPath(PathPlannerPath)} path command.
    */
-  public Command getAutonomousCommand(String pathName, boolean setOdomToStart)
+  public Command getAutonomousCommand(String autoName, boolean setOdomToStart)
   {
     // Load the path you want to follow using its name in the GUI
-    PathPlannerPath path = PathPlannerPath.fromPathFile(pathName);
+    PathPlannerAuto auto = new PathPlannerAuto(autoName);
 
     if (setOdomToStart)
     {
-      resetOdometry(new Pose2d(path.getPoint(0).position, getHeading()));
+      resetOdometry(PathPlannerAuto.getStaringPoseFromAutoFile(autoName));
     }
 
     // Create a path following command using AutoBuilder. This will also trigger event markers.
-    return AutoBuilder.followPath(path);
+    return auto;
+    
   }
 
   /**
@@ -281,11 +335,20 @@ public class SwerveSubsystem extends SubsystemBase
   @Override
   public void periodic()
   {
+    
+    Optional<EstimatedRobotPose> currentEstimatedRobotPose = photonPoseEstimator.update();
+
+    if (currentEstimatedRobotPose.isPresent()) {
+      swerveDrive.addVisionMeasurement(
+        currentEstimatedRobotPose.get().estimatedPose.toPose2d(), currentEstimatedRobotPose.get().timestampSeconds);
+      latestEstimatedRobotPose = currentEstimatedRobotPose.get();
+    }
   }
 
   @Override
   public void simulationPeriodic()
   {
+    simVisionSystem.update(getPose());
   }
 
   /**
@@ -472,8 +535,17 @@ public class SwerveSubsystem extends SubsystemBase
   /**
    * Add a fake vision reading for testing purposes.
    */
-  public void addFakeVisionReading()
+  public void addFakeVisionReading(Pose2d pose)
   {
-    swerveDrive.addVisionMeasurement(new Pose2d(3, 3, Rotation2d.fromDegrees(65)), Timer.getFPGATimestamp());
+    swerveDrive.addVisionMeasurement(pose, Timer.getFPGATimestamp());
   }
+  
+  /*
+  public Pose2d getAprilTagMeasurement(){
+    if (currentEstimatedRobotPose.isPresent()) {
+      return currentEstimatedRobotPose.get().estimatedPose.toPose2d();
+    }else{
+      return new Pose2d();
+    }
+  }*/
 }

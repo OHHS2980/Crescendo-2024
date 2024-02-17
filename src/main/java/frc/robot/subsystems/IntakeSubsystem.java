@@ -11,7 +11,7 @@ public class IntakeSubsystem extends SubsystemBase{
     private final CANSparkMax rightMotor = new CANSparkMax(IntakeConstants.intakeRightID, MotorType.kBrushless);
     
     public void setIntakeVoltage(double power){
-        leftMotor.set(power);
+        leftMotor.set(-power);
         rightMotor.set(-power);
     }
 

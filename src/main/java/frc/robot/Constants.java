@@ -57,11 +57,11 @@ public final class Constants
   {
     public static final int flywheelLeftID = 14;
     public static final int flywheelRightID = 15;
-    public static final int stagingLeftID = 13;
-    public static final int stagingRightID = 12;
+    public static final int stagingLeftID = 12;
+    public static final int stagingRightID = 13;
     public static final int pivotID = 11;
 
-    public static final double maxSpeed = 30;
+    public static final double maxSpeed = 4800;
 
     public static final double StowedArmDeg = 0;//tune these
     public static final double subwooferArmDeg = 0;
@@ -72,9 +72,9 @@ public final class Constants
 
     public static final int armEncoderPort = 0;
 
-    public static double shooterP = 0.005;
-    public static double shooterI = 0.0;
-    public static double shooterD = 0.0;
+    public static double shooterP =  0.00018;
+    public static double shooterI = 0;
+    public static double shooterD = 0;
 
     public static double armP = 0.005;
     public static double armI = 0.0;
@@ -96,9 +96,9 @@ public final class Constants
     public static final int climberRightID = 17;
 
     public static final double stowedEncoderVal = 0;
-    public static final double maxEncoderVal = 0;
+    public static final double maxEncoderVal = 20;
 
-    public static final double positionConversionFactor = 0;
+    public static final double positionConversionFactor = 2.47; //diameter of spool to convert rotations to inches 
 
     public static double climberP = 0.005;
     public static double climberI = 0.0;

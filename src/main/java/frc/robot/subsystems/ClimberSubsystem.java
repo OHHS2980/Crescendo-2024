@@ -11,12 +11,13 @@ public class ClimberSubsystem extends SubsystemBase{
     private final CANSparkMax rightMotor = new CANSparkMax(ClimberConstants.climberRightID, MotorType.kBrushless);
 
     public ClimberSubsystem(){
+        //set units to inches
         leftMotor.getEncoder().setPositionConversionFactor(ClimberConstants.positionConversionFactor);
         rightMotor.getEncoder().setPositionConversionFactor(ClimberConstants.positionConversionFactor);
 
         setClimberValues(ClimberConstants.climberP, ClimberConstants.climberI, ClimberConstants.climberD);
     }
-    
+
 
     public void home(){
         setClimberPos(ClimberConstants.stowedEncoderVal, ClimberConstants.stowedEncoderVal);
@@ -47,7 +48,7 @@ public class ClimberSubsystem extends SubsystemBase{
         rightMotor.set(power);
     }
 
-    public void setClimberPos(double leftPos, double rightPos){
+    public void setClimberPos(double leftPos, double rightPos){//inches
         leftMotor.getPIDController().setReference(leftPos, CANSparkMax.ControlType.kSmartMotion);
         rightMotor.getPIDController().setReference(rightPos, CANSparkMax.ControlType.kSmartMotion);
     }

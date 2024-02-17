@@ -37,12 +37,15 @@ public class IntakeCmd extends Command{
     
     @Override
     public void execute() {
-        if(intake.getAsBoolean() && !initialBeamSensor.get()){ 
+        if(intake.getAsBoolean()){ 
             intakeSubsystem.setIntakeVoltage(1);
+            SmartDashboard.putBoolean("INtaking",true);
         }else if (outtake.getAsBoolean()){
             intakeSubsystem.setIntakeVoltage(-1);
         }else{
             intakeSubsystem.setIntakeVoltage(0);
+            SmartDashboard.putBoolean("INtaking",false);
+
         }
 
         SmartDashboard.putNumber("IntakeSpeed", intakeSubsystem.getIntakeSpeed());

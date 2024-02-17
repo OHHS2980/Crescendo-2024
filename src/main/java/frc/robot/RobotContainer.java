@@ -11,6 +11,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -27,12 +28,14 @@ import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import java.io.File;
 
+import com.pathplanner.lib.auto.NamedCommands;
+
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   private final SwerveSubsystem drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(), "swerve/neo"));
   private final ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
-  //private final IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
-  //private final ClimberSubsystem climberSubsystem = new ClimberSubsystem();
+  private final IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
+  private final ClimberSubsystem climberSubsystem = new ClimberSubsystem();
 
   private Joystick driverJoystick = new Joystick(OIConstants.DriveJoystick);
   private Joystick driverTurn = new Joystick(OIConstants.TurnJoystick);
@@ -42,24 +45,28 @@ public class RobotContainer {
   {
     // Configure the trigger bindings
     configureBindings();
-
+    NamedCommands.registerCommand("Shoot", new InstantCommand(() -> shooterSubsystem.feedNotes(), shooterSubsystem));
+    
+    
     ShooterCmd shooterCmd = new ShooterCmd(shooterSubsystem,
     () -> driverJoystick.getRawAxis(3),
     () -> driverJoystick.getRawButton(1),
     () -> driverTurn.getRawButton(1),
-    () -> driverTurn.getRawAxis(3));
+    () -> driverTurn.getRawButton(2),
+    () -> driverTurn.getRawAxis(3)
+    );
 
-/*
+
     IntakeCmd intakeCmd = new IntakeCmd(intakeSubsystem,
-    () -> driverTurn.getRawButton(1),
-    () -> driverTurn.getRawButton(3));
-*/
+    () -> driverTurn.getRawButton(11),
+    () -> driverTurn.getRawButton(16));
 
-/*
+
+
     ClimberCmd climberCmd = new ClimberCmd(climberSubsystem,
-    () -> driverTurn.getRawButton(1),
-    () -> driverTurn.getRawButton(3));
-*/
+    () -> driverTurn.getRawButton(7),
+    () -> driverTurn.getRawButton(8));
+
 
     AbsoluteDriveAdv closedAbsoluteDriveAdv = new AbsoluteDriveAdv(drivebase,
                                                                    () -> MathUtil.applyDeadband(driverJoystick.getRawAxis(OIConstants.TranslationY),
@@ -79,16 +86,16 @@ public class RobotContainer {
     // left stick controls translation
     // right stick controls the angular velocity of the robot
     Command driveFieldOrientedAnglularVelocity = drivebase.driveCommand(
-      () -> MathUtil.applyDeadband(driverJoystick.getRawAxis(OIConstants.TranslationY),
+      () -> MathUtil.applyDeadband(-driverJoystick.getRawAxis(OIConstants.TranslationY),
          OperatorConstants.LEFT_Y_DEADBAND),
-      () -> MathUtil.applyDeadband(driverJoystick.getRawAxis(OIConstants.TranslationX),
+      () -> MathUtil.applyDeadband(-driverJoystick.getRawAxis(OIConstants.TranslationX),
         OperatorConstants.LEFT_X_DEADBAND),
       () -> driverTurn.getRawAxis(0));
 
     Command driveFieldOrientedDirectAngleSim = drivebase.simDriveCommand(
-        () -> MathUtil.applyDeadband(driverJoystick.getRawAxis(OIConstants.TranslationY),
+        () -> MathUtil.applyDeadband(-driverJoystick.getRawAxis(OIConstants.TranslationY),
          OperatorConstants.LEFT_Y_DEADBAND),
-      () -> MathUtil.applyDeadband(driverJoystick.getRawAxis(OIConstants.TranslationX),
+      () -> MathUtil.applyDeadband(-driverJoystick.getRawAxis(OIConstants.TranslationX),
         OperatorConstants.LEFT_X_DEADBAND),
       () -> driverTurn.getRawAxis(0));
 
@@ -96,8 +103,8 @@ public class RobotContainer {
         !RobotBase.isSimulation() ? driveFieldOrientedAnglularVelocity : driveFieldOrientedAnglularVelocity);
 
     shooterSubsystem.setDefaultCommand(shooterCmd);
-    //intakeSubsystem.setDefaultCommand(intakeCmd);
-    //climberSubsystem.setDefaultCommand(climberCmd);
+    intakeSubsystem.setDefaultCommand(intakeCmd);
+    climberSubsystem.setDefaultCommand(climberCmd);
   }
 
   
@@ -106,11 +113,10 @@ public class RobotContainer {
     // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
 
     new JoystickButton(driverJoystick, 2).onTrue((new InstantCommand(drivebase::zeroGyro)));
-    //new JoystickButton(driverXbox, 3).onTrue(new InstantCommand(drivebase::addFakeVisionReading));
     new JoystickButton(driverJoystick,
                        3).whileTrue(
         Commands.deferredProxy(() -> drivebase.driveToPose(
-                                   new Pose2d(new Translation2d(0, 0), Rotation2d.fromDegrees(0)))
+                                   new Pose2d(new Translation2d(14.6, 5), Rotation2d.fromDegrees(0)))
                               ));
                               
 //    new JoystickButton(driverXbox, 3).whileTrue(new RepeatCommand(new InstantCommand(drivebase::lock, drivebase)));
@@ -124,7 +130,7 @@ public class RobotContainer {
   public Command getAutonomousCommand()
   {
     // An example command will be run in autonomous
-    return drivebase.getAutonomousCommand("New Path", true);
+    return drivebase.getAutonomousCommand("1+1CROut", true);
   }
 
   public void setDriveMode()

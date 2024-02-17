@@ -1,6 +1,7 @@
 package frc.robot.commands;
 
 import java.util.function.BooleanSupplier;
+import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.math.MathUtil;
@@ -13,9 +14,10 @@ public class ShooterCmd extends Command{
     private final ShooterSubsystem shooterSubsystem; 
 
     private DoubleSupplier shooterSlider;
-    private DoubleSupplier armSlider;
     private BooleanSupplier shoot;
     private BooleanSupplier feed;
+    private BooleanSupplier unFeed;
+    private DoubleSupplier armSlider;
 
     private double armSetpoint;
 
@@ -24,12 +26,14 @@ public class ShooterCmd extends Command{
         DoubleSupplier shooterSlider,
         BooleanSupplier shoot,
         BooleanSupplier feed,
+        BooleanSupplier unFeed,
         DoubleSupplier armSlider) {
 
         this.shooterSlider = shooterSlider;
-        this.armSlider = armSlider;
         this.shoot = shoot;
         this.feed = feed;
+        this.unFeed = unFeed;
+        this.armSlider = armSlider;
 
         this.shooterSubsystem = shooterSubsystem;
         
@@ -45,25 +49,35 @@ public class ShooterCmd extends Command{
     public void execute() {
         if(shoot.getAsBoolean()){
             shooterSubsystem.setShooterSpeed(shooterSlider.getAsDouble() * ShooterConstants.maxSpeed);
+            //shooterSubsystem.setShooterVoltage(shooterSlider.getAsDouble());
         }else{
             shooterSubsystem.setShooterVoltage(0);
+            //shooterSubsystem.setShooterVoltage(0);
         }
 
         //set arm setpoint to the slider clamped to 0.4-0.5   (armSlider.getAsDouble()+1)*0.05)+0.4)
         
         
         //increment setpoint a very small amount based on the slider
-        armSetpoint += MathUtil.applyDeadband(armSlider.getAsDouble(), 0.25) * 0.005;
-        shooterSubsystem.setArmPosition(armSetpoint);
+        
+        
+        shooterSubsystem.setArmPosition(((armSlider.getAsDouble() + 1)/2)*(65) + 188);
         
 
         if(feed.getAsBoolean()){ 
             shooterSubsystem.feedNotes();
+        }else if(unFeed.getAsBoolean()){
+            shooterSubsystem.unfeedNotes();
         }else{
             shooterSubsystem.stopFeed();
         }
         SmartDashboard.putNumber("Encoder degrees", shooterSubsystem.getPosotion());
-        SmartDashboard.putNumber("ShooterSpeed", shooterSubsystem.getShooterSpeed());
+        SmartDashboard.putNumber("ShooterSpeedLeft", shooterSubsystem.getShooterSpeedLeft());
+        SmartDashboard.putNumber("ShooterSpeedRight", shooterSubsystem.getShooterSpeedRight());
+        SmartDashboard.putNumber("ShooterTaget", shooterSlider.getAsDouble() * ShooterConstants.maxSpeed);
+    
+        SmartDashboard.putNumber("ArmSetpoint", armSetpoint);
+
     }
     
     @Override

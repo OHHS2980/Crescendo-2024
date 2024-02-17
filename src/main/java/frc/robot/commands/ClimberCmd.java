@@ -32,9 +32,9 @@ public class ClimberCmd extends Command{
     @Override
     public void execute() {
         if(extend.getAsBoolean()){ 
-            climberSubsystem.setClimberVoltage(1.0);
+            climberSubsystem.setClimberVoltage(0.3);
         }else if (retract.getAsBoolean()){
-            climberSubsystem.setClimberVoltage(-1.0);
+            climberSubsystem.setClimberVoltage(-0.3);
         }else{
             climberSubsystem.setClimberVoltage(0.0);
         }
