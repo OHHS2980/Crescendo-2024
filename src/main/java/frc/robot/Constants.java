@@ -66,17 +66,18 @@ public final class Constants
     public static final double StowedArmDeg = 0;//tune these
     public static final double subwooferArmDeg = 0;
     public static final double ampArmDeg = 0;
+    public static final double intakeArmDeg = 235;
 
     public static final double ampShooterVel = 0;
     public static final double subwooferShooterVel = 0;
 
     public static final int armEncoderPort = 0;
 
-    public static double shooterP =  0.00018;
+    public static double shooterP =  0.00016301886;
     public static double shooterI = 0;
     public static double shooterD = 0;
 
-    public static double armP = 0.005;
+    public static double armP = 0.017;
     public static double armI = 0.0;
     public static double armD = 0.0;
   }

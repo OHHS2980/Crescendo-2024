@@ -21,7 +21,6 @@ import swervelib.parser.SwerveParser;
  */
 public class Robot extends TimedRobot
 {
-
   private static Robot   instance;
   private        Command m_autonomousCommand;
 

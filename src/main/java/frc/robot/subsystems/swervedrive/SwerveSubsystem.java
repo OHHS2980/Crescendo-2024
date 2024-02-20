@@ -76,7 +76,7 @@ public class SwerveSubsystem extends SubsystemBase
     
     private final AprilTagFieldLayout aprilTagFieldLayout = AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
 
-    private final Transform3d robotToCam = new Transform3d(new Translation3d(-0.29845, 0.1143, 0.187325), new Rotation3d(0, -0.436332, Math.PI));
+    private final Transform3d robotToCam = new Transform3d(new Translation3d(-0.047625, -0.3048, 0.51435), new Rotation3d(0, -0.453786, 2.89725));
 
     private final PhotonPoseEstimator photonPoseEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, photonCamera, robotToCam);
     private EstimatedRobotPose latestEstimatedRobotPose;
@@ -115,8 +115,8 @@ public class SwerveSubsystem extends SubsystemBase
     // A 640 x 480 camera with a 100 degree diagonal FOV.
     cameraProp.setCalibration(640, 480, Rotation2d.fromDegrees(75));
     // Approximate detection noise with average and standard deviation error in pixels.
-    //cameraProp.setCalibError(0.25, 0.08);
-    cameraProp.setCalibError(0, 0);
+    cameraProp.setCalibError(0.25, 0.08);
+    //cameraProp.setCalibError(0, 0);
     // Set the camera image capture framerate (Note: this is limited by robot loop rate).
     cameraProp.setFPS(20);
     // The average and standard deviation in milliseconds of image data latency.

@@ -11,20 +11,15 @@ import frc.robot.subsystems.IntakeSubsystem;
 
 public class IntakeCmd extends Command{
     private final IntakeSubsystem intakeSubsystem;
-    
-    private DigitalInput initialBeamSensor = new DigitalInput(IntakeConstants.initialBeamSensorPort);
-    private DigitalInput finalBeamSensor = new DigitalInput(IntakeConstants.finalBeamSensorPort);
 
     private BooleanSupplier intake;
-    private BooleanSupplier outtake;
+    private Boolean noteDetected;
 
 
     public IntakeCmd(IntakeSubsystem intakeSubsystem,
-        BooleanSupplier intake,
-        BooleanSupplier outtake) {
+        BooleanSupplier intake) {
 
         this.intake = intake;
-        this.outtake = outtake;
 
         this.intakeSubsystem = intakeSubsystem;
         addRequirements(intakeSubsystem);
@@ -38,20 +33,14 @@ public class IntakeCmd extends Command{
     @Override
     public void execute() {
         if(intake.getAsBoolean()){ 
-            intakeSubsystem.setIntakeVoltage(1);
-            SmartDashboard.putBoolean("INtaking",true);
-        }else if (outtake.getAsBoolean()){
             intakeSubsystem.setIntakeVoltage(-1);
+            SmartDashboard.putBoolean("INtaking",true);
         }else{
-            intakeSubsystem.setIntakeVoltage(0);
-            SmartDashboard.putBoolean("INtaking",false);
-
+            intakeSubsystem.stopIntake();
         }
 
         SmartDashboard.putNumber("IntakeSpeed", intakeSubsystem.getIntakeSpeed());
-
-        SmartDashboard.putBoolean("InitialBeamBreak", initialBeamSensor.get());
-        SmartDashboard.putBoolean("FinalBeamBreak", finalBeamSensor.get());
+        SmartDashboard.putBoolean("BeamBreak", intakeSubsystem.getBeamBreak());
     }
     
     @Override

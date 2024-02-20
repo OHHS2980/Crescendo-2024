@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.hal.AllianceStationID;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -11,16 +12,25 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Constants.OIConstants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.ClimberCmd;
 import frc.robot.commands.IntakeCmd;
+import frc.robot.commands.ShootCloseCmd;
 import frc.robot.commands.ShooterCmd;
+import frc.robot.commands.autoIntakeCmd;
+import frc.robot.commands.shootNoteAuto;
+import frc.robot.commands.shootPosition;
 import frc.robot.commands.swervedrive.drivebase.AbsoluteDriveAdv;
 import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
@@ -45,21 +55,32 @@ public class RobotContainer {
   {
     // Configure the trigger bindings
     configureBindings();
-    NamedCommands.registerCommand("Shoot", new InstantCommand(() -> shooterSubsystem.feedNotes(), shooterSubsystem));
-    
+    //NamedCommands.registerCommand("Shoot", new InstantCommand(() -> shooterSubsystem.startShooting(), shooterSubsystem));
+    //NamedCommands.registerCommand("StopFeed", new InstantCommand(() -> shooterSubsystem.stopFeed(), shooterSubsystem));
+    //NamedCommands.registerCommand("Prep", new shootPosition(() -> drivebase.getPose(), shooterSubsystem));
+    //NamedCommands.registerCommand("UnFeed", new InstantCommand(() -> shooterSubsystem.unfeedNotes(), shooterSubsystem));
+    NamedCommands.registerCommand("Intake", new ParallelCommandGroup(new autoIntakeCmd(intakeSubsystem), new InstantCommand(() -> shooterSubsystem.intakePos(), shooterSubsystem)));
+    //NamedCommands.registerCommand("StopIntake", new InstantCommand(() -> intakeSubsystem.stopIntake(), intakeSubsystem));
+    //NamedCommands.registerCommand("StopShooter", new InstantCommand(() -> shooterSubsystem.stopShooting(), shooterSubsystem));
+    //NamedCommands.registerCommand("ShooterIntake", new InstantCommand(() ->shooterSubsystem.intakePos(), shooterSubsystem));
+    NamedCommands.registerCommand("LoadNote", new SequentialCommandGroup(new shootNoteAuto(() -> drivebase.getPose(), shooterSubsystem), new WaitCommand(0.15), new InstantCommand(() -> shooterSubsystem.stopShooting(), shooterSubsystem)));
+    NamedCommands.registerCommand("CenterNote", new ParallelRaceGroup(new SequentialCommandGroup(new InstantCommand(() -> shooterSubsystem.unfeedNotes(), shooterSubsystem), new WaitCommand(0.025), new InstantCommand(() -> shooterSubsystem.stopFeed(), shooterSubsystem))));
+    //NamedCommands.registerCommand("CenterNotes", new InstantCommand(() -> shooterSubsystem.stopFeed(), shooterSubsystem));
     
     ShooterCmd shooterCmd = new ShooterCmd(shooterSubsystem,
     () -> driverJoystick.getRawAxis(3),
     () -> driverJoystick.getRawButton(1),
     () -> driverTurn.getRawButton(1),
     () -> driverTurn.getRawButton(2),
-    () -> driverTurn.getRawAxis(3)
+    () -> driverTurn.getRawAxis(3),
+    () -> driverTurn.getRawButtonPressed(4)
     );
+
+    //shootPosition shootPosition = new shootPosition(() -> drivebase.getPose(), shooterSubsystem);
 
 
     IntakeCmd intakeCmd = new IntakeCmd(intakeSubsystem,
-    () -> driverTurn.getRawButton(11),
-    () -> driverTurn.getRawButton(16));
+    () -> driverTurn.getRawButton(6));
 
 
 
@@ -90,7 +111,7 @@ public class RobotContainer {
          OperatorConstants.LEFT_Y_DEADBAND),
       () -> MathUtil.applyDeadband(-driverJoystick.getRawAxis(OIConstants.TranslationX),
         OperatorConstants.LEFT_X_DEADBAND),
-      () -> driverTurn.getRawAxis(0));
+      () -> -driverTurn.getRawAxis(0));
 
     Command driveFieldOrientedDirectAngleSim = drivebase.simDriveCommand(
         () -> MathUtil.applyDeadband(-driverJoystick.getRawAxis(OIConstants.TranslationY),
@@ -116,7 +137,7 @@ public class RobotContainer {
     new JoystickButton(driverJoystick,
                        3).whileTrue(
         Commands.deferredProxy(() -> drivebase.driveToPose(
-                                   new Pose2d(new Translation2d(14.6, 5), Rotation2d.fromDegrees(0)))
+                                   new Pose2d(new Translation2d(14, 5.5), Rotation2d.fromDegrees(180)))
                               ));
                               
 //    new JoystickButton(driverXbox, 3).whileTrue(new RepeatCommand(new InstantCommand(drivebase::lock, drivebase)));
@@ -130,7 +151,7 @@ public class RobotContainer {
   public Command getAutonomousCommand()
   {
     // An example command will be run in autonomous
-    return drivebase.getAutonomousCommand("1+1CROut", true);
+    return drivebase.getAutonomousCommand("1+3LLOut", false);
   }
 
   public void setDriveMode()

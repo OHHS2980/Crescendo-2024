@@ -6,8 +6,11 @@ import com.revrobotics.SparkPIDController;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
+import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.ShooterConstants;
 
 public class ShooterSubsystem extends SubsystemBase{
@@ -23,6 +26,9 @@ public class ShooterSubsystem extends SubsystemBase{
     private PIDController shooterLeftController = new PIDController(ShooterConstants.shooterP,ShooterConstants.shooterI,ShooterConstants.shooterD);
     private PIDController shooterRightController = new PIDController(ShooterConstants.shooterP,ShooterConstants.shooterI,ShooterConstants.shooterD);
 
+    private Servo servoRight = new Servo(0);
+    private Servo servoLeft = new Servo(1); 
+
     private SparkPIDController shooterControllerSparkLeft;
     private SparkPIDController shooterControllerSparkRight;
 
@@ -30,6 +36,10 @@ public class ShooterSubsystem extends SubsystemBase{
     private RelativeEncoder encoderRight = shooterRightMotor.getEncoder();
 
     private DutyCycleEncoder armEncoder = new DutyCycleEncoder(ShooterConstants.armEncoderPort);
+    private double angle = 240;
+    private double velocity;
+
+    private boolean stop = false;
 
     public ShooterSubsystem(){
         armEncoder.setDistancePerRotation(360);//set units to degrees
@@ -42,6 +52,8 @@ public class ShooterSubsystem extends SubsystemBase{
 
         shooterControllerSparkLeft.setSmartMotionMaxVelocity(ShooterConstants.maxSpeed, 0);
         shooterControllerSparkRight.setSmartMotionMaxVelocity(ShooterConstants.maxSpeed, 0);
+
+        armController.setTolerance(1, 0.3);
 
         setShooterValues(ShooterConstants.shooterP,ShooterConstants.shooterI,ShooterConstants.shooterD);
     }
@@ -60,6 +72,10 @@ public class ShooterSubsystem extends SubsystemBase{
         setArmPosition(ShooterConstants.subwooferArmDeg);
         setShooterSpeed(ShooterConstants.subwooferShooterVel);
     }
+
+    public void intakePos(){
+        setArmPosition(ShooterConstants.intakeArmDeg);
+    }
     
 
     /*       utilities       */
@@ -70,12 +86,11 @@ public class ShooterSubsystem extends SubsystemBase{
         shooterRightMotor.set(power);
     }
 
-    public void setShooterSpeed(double velocity){// radians/sec
-        shooterLeftMotor.set(shooterLeftController.calculate(-encoderLeft.getVelocity(), velocity));
-        shooterRightMotor.set(-shooterRightController.calculate(encoderRight.getVelocity(), velocity));
-        //shooterControllerSparkLeft.setReference(velocity, CANSparkMax.ControlType.kVelocity);
-        //shooterControllerSparkRight.setReference(velocity, CANSparkMax.ControlType.kVelocity);
+    public void setServoPos(double posLeft, double posRight){
+        servoRight.set(posRight);
+        servoLeft.set(posLeft);
     }
+
 
     public void setShooterValues(double p, double i, double d){
         shooterControllerSparkLeft.setP(p);
@@ -89,10 +104,6 @@ public class ShooterSubsystem extends SubsystemBase{
 
     public void setArmVoltage(double power){
         shooterArmMotor.set(Math.min(power ,  0.25));
-    }
-
-    public void setArmPosition(double position){// degrees
-        setArmVoltage(-armController.calculate(armEncoder.getDistance(), position));
     }
 
     public void feedNotes(){
@@ -121,7 +132,51 @@ public class ShooterSubsystem extends SubsystemBase{
         return armEncoder.getDistance();
     }
 
+    public double getArmSetpoint(){// degrees
+        return angle;
+    }
+
     public double getCalculation(double velocity){
         return shooterLeftController.calculate(encoderLeft.getVelocity(), velocity);
     }
+
+    public void setShooter(double velocity, double angle){
+        setShooterSpeed(velocity);
+        setArmPosition(angle);
+    }
+
+    public void setArmPosition(double angle) {
+       this.angle = angle;
+       if(angle > 311)angle = 311;
+       if(angle < 234)angle = 235;
+    }
+
+    public void setShooterSpeed(double velocity) {
+        stop = false;
+        this.velocity = velocity;
+    }
+
+    public void stopShooting(){
+        stop = true;
+    }
+
+    public void startShooting(){
+        setShooterSpeed(-3900);
+    }
+
+    public boolean atArmSetpoint(){
+        return armController.atSetpoint();
+    }
+
+    @Override
+    public void periodic(){
+        if(stop){
+            setShooterVoltage(0);
+        }else{
+            shooterLeftMotor.set(shooterLeftController.calculate(-encoderLeft.getVelocity(), velocity));
+            shooterRightMotor.set(-shooterRightController.calculate(encoderRight.getVelocity(), velocity));
+        }
+        setArmVoltage(-armController.calculate(armEncoder.getDistance(), angle));
+    }
+
 }

@@ -18,8 +18,10 @@ public class ShooterCmd extends Command{
     private BooleanSupplier feed;
     private BooleanSupplier unFeed;
     private DoubleSupplier armSlider;
+    private BooleanSupplier ampArm;
 
     private double armSetpoint;
+    private boolean ampIn = true;
 
 
     public ShooterCmd(ShooterSubsystem shooterSubsystem,
@@ -27,13 +29,15 @@ public class ShooterCmd extends Command{
         BooleanSupplier shoot,
         BooleanSupplier feed,
         BooleanSupplier unFeed,
-        DoubleSupplier armSlider) {
+        DoubleSupplier armSlider,
+        BooleanSupplier ampArm) {
 
         this.shooterSlider = shooterSlider;
         this.shoot = shoot;
         this.feed = feed;
         this.unFeed = unFeed;
         this.armSlider = armSlider;
+        this.ampArm = ampArm;
 
         this.shooterSubsystem = shooterSubsystem;
         
@@ -42,7 +46,7 @@ public class ShooterCmd extends Command{
 
     @Override
     public void initialize() {
-        armSetpoint = shooterSubsystem.getPosotion();
+        armSetpoint = shooterSubsystem.getArmSetpoint();
     }
     
     @Override
@@ -51,20 +55,25 @@ public class ShooterCmd extends Command{
             shooterSubsystem.setShooterSpeed(shooterSlider.getAsDouble() * ShooterConstants.maxSpeed);
             //shooterSubsystem.setShooterVoltage(shooterSlider.getAsDouble());
         }else{
-            shooterSubsystem.setShooterVoltage(0);
+            shooterSubsystem.setShooterSpeed(0);
             //shooterSubsystem.setShooterVoltage(0);
         }
 
-        //set arm setpoint to the slider clamped to 0.4-0.5   (armSlider.getAsDouble()+1)*0.05)+0.4)
-        
-        
-        //increment setpoint a very small amount based on the slider
-        
-        
-        shooterSubsystem.setArmPosition(((armSlider.getAsDouble() + 1)/2)*(65) + 188);
-        
+        shooterSubsystem.setArmPosition(((armSlider.getAsDouble() + 1)/2)*(311-234) + 234);
 
-        if(feed.getAsBoolean()){ 
+        armSetpoint = shooterSubsystem.getArmSetpoint();
+
+        if(ampArm.getAsBoolean()){
+            ampIn = !ampIn;
+        }
+
+        if(ampIn){
+            shooterSubsystem.setServoPos(0.16, 0.79);
+        }else{
+            shooterSubsystem.setServoPos(0.915,0.04);
+        }
+
+        if(feed.getAsBoolean()){
             shooterSubsystem.feedNotes();
         }else if(unFeed.getAsBoolean()){
             shooterSubsystem.unfeedNotes();
