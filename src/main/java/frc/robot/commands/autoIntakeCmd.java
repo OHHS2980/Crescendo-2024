@@ -29,6 +29,6 @@ public class autoIntakeCmd extends Command{
 
     @Override
     public boolean isFinished() {
-        return !intakeSubsystem.getBeamBreak();
+        return false;
     }
 }

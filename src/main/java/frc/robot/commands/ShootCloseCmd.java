@@ -5,17 +5,21 @@ import java.time.temporal.ValueRange;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.ShooterConstants;
+import frc.robot.subsystems.FeederSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 
 public class ShootCloseCmd extends Command{
     private final ShooterSubsystem shooterSubsystem;
+    private final FeederSubsystem feederSubsystem;
     private double velocity = -4800;
     private double angle = 235;
 
 
-    public ShootCloseCmd(ShooterSubsystem shooterSubsystem) {
+    public ShootCloseCmd(ShooterSubsystem shooterSubsystem, FeederSubsystem feederSubsystem) {
         this.shooterSubsystem = shooterSubsystem;
+        this.feederSubsystem = feederSubsystem;
         
+        addRequirements(feederSubsystem);
         addRequirements(shooterSubsystem);
     }
 
@@ -36,7 +40,7 @@ public class ShootCloseCmd extends Command{
 
     @Override
     public void end(boolean interrupted) {
-        shooterSubsystem.feedNotes();
+        feederSubsystem.feedNotes();
     }
 
     @Override

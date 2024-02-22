@@ -9,9 +9,11 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -19,6 +21,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
+import edu.wpi.first.wpilibj2.command.RepeatCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
@@ -29,14 +32,18 @@ import frc.robot.commands.IntakeCmd;
 import frc.robot.commands.ShootCloseCmd;
 import frc.robot.commands.ShooterCmd;
 import frc.robot.commands.autoIntakeCmd;
+import frc.robot.commands.feederWheelCmd;
 import frc.robot.commands.shootNoteAuto;
 import frc.robot.commands.shootPosition;
 import frc.robot.commands.swervedrive.drivebase.AbsoluteDriveAdv;
+import frc.robot.commands.swervedrive.drivebase.AbsoluteFieldDrive;
 import frc.robot.subsystems.ClimberSubsystem;
+import frc.robot.subsystems.FeederSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import java.io.File;
+import java.sql.Driver;
 
 import com.pathplanner.lib.auto.NamedCommands;
 
@@ -46,10 +53,17 @@ public class RobotContainer {
   private final ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
   private final IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
   private final ClimberSubsystem climberSubsystem = new ClimberSubsystem();
+  private final FeederSubsystem feederSubsystem = new FeederSubsystem();
 
-  private Joystick driverJoystick = new Joystick(OIConstants.DriveJoystick);
-  private Joystick driverTurn = new Joystick(OIConstants.TurnJoystick);
-  private Joystick operatorJoystick = new Joystick(OIConstants.operatorJoystick);
+  private final Translation2d speakerPose2dBlue = new Translation2d(0.0, 5.5);
+  private final Translation2d speakerPose2dRed = new Translation2d(16.54, 5.5);
+
+  private Joystick leftJoystick = new Joystick(OIConstants.DriveJoystick);
+  private Joystick rightJoystick = new Joystick(OIConstants.TurnJoystick);
+  private XboxController operator = new XboxController(OIConstants.operatorJoystick);
+
+  private Command driveFieldOrientedAngle;
+  private Command driveFieldOrientedAnglularVelocity;
 
   public RobotContainer()
   {
@@ -63,69 +77,74 @@ public class RobotContainer {
     //NamedCommands.registerCommand("StopIntake", new InstantCommand(() -> intakeSubsystem.stopIntake(), intakeSubsystem));
     //NamedCommands.registerCommand("StopShooter", new InstantCommand(() -> shooterSubsystem.stopShooting(), shooterSubsystem));
     //NamedCommands.registerCommand("ShooterIntake", new InstantCommand(() ->shooterSubsystem.intakePos(), shooterSubsystem));
-    NamedCommands.registerCommand("LoadNote", new SequentialCommandGroup(new shootNoteAuto(() -> drivebase.getPose(), shooterSubsystem), new WaitCommand(0.15), new InstantCommand(() -> shooterSubsystem.stopShooting(), shooterSubsystem)));
-    NamedCommands.registerCommand("CenterNote", new ParallelRaceGroup(new SequentialCommandGroup(new InstantCommand(() -> shooterSubsystem.unfeedNotes(), shooterSubsystem), new WaitCommand(0.025), new InstantCommand(() -> shooterSubsystem.stopFeed(), shooterSubsystem))));
+    NamedCommands.registerCommand("LoadNote", new SequentialCommandGroup(new shootNoteAuto(() -> drivebase.getPose(), shooterSubsystem, feederSubsystem), new WaitCommand(0.15), new InstantCommand(() -> shooterSubsystem.stopShooting(), shooterSubsystem)));
+    NamedCommands.registerCommand("CenterNote", new ParallelRaceGroup(new SequentialCommandGroup(new InstantCommand(() -> feederSubsystem.unfeedNotes(), shooterSubsystem), new WaitCommand(0.025), new InstantCommand(() -> feederSubsystem.stopFeed(), shooterSubsystem))));
     //NamedCommands.registerCommand("CenterNotes", new InstantCommand(() -> shooterSubsystem.stopFeed(), shooterSubsystem));
     
+    
     ShooterCmd shooterCmd = new ShooterCmd(shooterSubsystem,
-    () -> driverJoystick.getRawAxis(3),
-    () -> driverJoystick.getRawButton(1),
-    () -> driverTurn.getRawButton(1),
-    () -> driverTurn.getRawButton(2),
-    () -> driverTurn.getRawAxis(3),
-    () -> driverTurn.getRawButtonPressed(4)
+    () -> rightJoystick.getRawAxis(3),
+    () -> rightJoystick.getRawButton(1),
+    () -> leftJoystick.getRawButton(1),
+    () -> leftJoystick.getRawButton(2),
+    () -> leftJoystick.getRawAxis(3),
+    () -> leftJoystick.getRawButtonPressed(4)
     );
 
-    //shootPosition shootPosition = new shootPosition(() -> drivebase.getPose(), shooterSubsystem);
+    shootPosition shootPosition = new shootPosition(
+      () -> drivebase.getPose(), shooterSubsystem,
+      () -> rightJoystick.getRawButton(1), //shoot
+      () -> operator.getAButtonPressed(), //amp
+      () -> leftJoystick.getRawButton(1), //intake
+      () -> rightJoystick.getRawButtonPressed(2), //aim
+      () -> operator.getXButtonPressed() //source
+    );
 
-
-    IntakeCmd intakeCmd = new IntakeCmd(intakeSubsystem,
-    () -> driverTurn.getRawButton(6));
-
-
+    feederWheelCmd feederWheelCmd = new feederWheelCmd(feederSubsystem,
+      () -> rightJoystick.getRawButton(4), //shoot
+      () -> leftJoystick.getRawButton(1), //intake
+      () -> operator.getBButton() //center
+    );
 
     ClimberCmd climberCmd = new ClimberCmd(climberSubsystem,
-    () -> driverTurn.getRawButton(7),
-    () -> driverTurn.getRawButton(8));
+      () -> operator.getLeftY(), //Left climber
+      () -> operator.getRightY() //Right climber
+    );
 
-
-    AbsoluteDriveAdv closedAbsoluteDriveAdv = new AbsoluteDriveAdv(drivebase,
-                                                                   () -> MathUtil.applyDeadband(driverJoystick.getRawAxis(OIConstants.TranslationY),
-                                                                                                OperatorConstants.LEFT_Y_DEADBAND),
-                                                                   () -> MathUtil.applyDeadband(driverJoystick.getRawAxis(OIConstants.TranslationX),
-                                                                                                OperatorConstants.LEFT_X_DEADBAND),
-                                                                   () -> MathUtil.applyDeadband(driverTurn.getRawAxis(OIConstants.Rotation),
-                                                                                                OperatorConstants.RIGHT_X_DEADBAND),
-                                                                   () -> POVAway(),
-                                                                   () -> POVTowards(),
-                                                                   () -> POVLeft(),
-                                                                   () -> POVRight());
+    IntakeCmd intakeCmd = new IntakeCmd(intakeSubsystem, () -> leftJoystick.getRawButton(1));
 
     // Applies deadbands and inverts controls because joysticks
     // are back-right positive while robot
     // controls are front-left positive
     // left stick controls translation
     // right stick controls the angular velocity of the robot
-    Command driveFieldOrientedAnglularVelocity = drivebase.driveCommand(
-      () -> MathUtil.applyDeadband(-driverJoystick.getRawAxis(OIConstants.TranslationY),
+    
+    driveFieldOrientedAnglularVelocity = drivebase.driveCommand(
+      () -> MathUtil.applyDeadband(rightJoystick.getRawAxis(OIConstants.TranslationY) * (DriverStation.getAlliance().get() == Alliance.Blue ? -1: 1),
          OperatorConstants.LEFT_Y_DEADBAND),
-      () -> MathUtil.applyDeadband(-driverJoystick.getRawAxis(OIConstants.TranslationX),
+      () -> MathUtil.applyDeadband(rightJoystick.getRawAxis(OIConstants.TranslationX) * (DriverStation.getAlliance().get() == Alliance.Blue ? -1: 1),
         OperatorConstants.LEFT_X_DEADBAND),
-      () -> -driverTurn.getRawAxis(0));
+      () -> -leftJoystick.getRawAxis(0)
+      );
 
-    Command driveFieldOrientedDirectAngleSim = drivebase.simDriveCommand(
-        () -> MathUtil.applyDeadband(-driverJoystick.getRawAxis(OIConstants.TranslationY),
+    driveFieldOrientedAngle = new AbsoluteFieldDrive(
+      drivebase,   
+      () -> MathUtil.applyDeadband(rightJoystick.getRawAxis(OIConstants.TranslationY) * (DriverStation.getAlliance().get() == Alliance.Blue ? -1: 1),
          OperatorConstants.LEFT_Y_DEADBAND),
-      () -> MathUtil.applyDeadband(-driverJoystick.getRawAxis(OIConstants.TranslationX),
+      () -> MathUtil.applyDeadband(rightJoystick.getRawAxis(OIConstants.TranslationX) * (DriverStation.getAlliance().get() == Alliance.Blue ? -1: 1),
         OperatorConstants.LEFT_X_DEADBAND),
-      () -> driverTurn.getRawAxis(0));
+      () -> autoAimX()
+      );
 
-    drivebase.setDefaultCommand(
-        !RobotBase.isSimulation() ? driveFieldOrientedAnglularVelocity : driveFieldOrientedAnglularVelocity);
+    driveFieldOrientedAngle.cancel();
+    driveFieldOrientedAnglularVelocity.schedule();
 
-    shooterSubsystem.setDefaultCommand(shooterCmd);
-    intakeSubsystem.setDefaultCommand(intakeCmd);
+    drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
+
+    shooterSubsystem.setDefaultCommand(shootPosition);
+    feederSubsystem.setDefaultCommand(feederWheelCmd);
     climberSubsystem.setDefaultCommand(climberCmd);
+    intakeSubsystem.setDefaultCommand(intakeCmd);
   }
 
   
@@ -133,14 +152,16 @@ public class RobotContainer {
   {
     // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
 
-    new JoystickButton(driverJoystick, 2).onTrue((new InstantCommand(drivebase::zeroGyro)));
-    new JoystickButton(driverJoystick,
-                       3).whileTrue(
+    new JoystickButton(rightJoystick, 3).onTrue((new InstantCommand(drivebase::zeroGyro)));
+    new JoystickButton(leftJoystick,
+                       4).whileTrue(
         Commands.deferredProxy(() -> drivebase.driveToPose(
-                                   new Pose2d(new Translation2d(14, 5.5), Rotation2d.fromDegrees(180)))
+                                   new Pose2d(new Translation2d(DriverStation.getAlliance().get() == Alliance.Blue ? 2.25:14.75, 5.5), Rotation2d.fromDegrees(DriverStation.getAlliance().get() == Alliance.Blue ? 0:180)))
                               ));
                               
-//    new JoystickButton(driverXbox, 3).whileTrue(new RepeatCommand(new InstantCommand(drivebase::lock, drivebase)));
+    new JoystickButton(leftJoystick, 3).whileTrue(new RepeatCommand(new InstantCommand(drivebase::lock, drivebase)));
+    new JoystickButton(rightJoystick, 2).onTrue(new InstantCommand(() -> setDriveModeAutoAim()));
+    new JoystickButton(rightJoystick, 2).onFalse(new InstantCommand(() -> setDriveModeTele()));
   }
 
   /**
@@ -148,15 +169,22 @@ public class RobotContainer {
    *
    * @return the command to run in autonomous
    */
-  public Command getAutonomousCommand()
+  public Command getAutonomousCommand(String autoName)
   {
     // An example command will be run in autonomous
-    return drivebase.getAutonomousCommand("1+3LLOut", false);
+    return drivebase.getAutonomousCommand(autoName, true);
   }
 
-  public void setDriveMode()
+  public void setDriveModeAutoAim()
   {
-    //drivebase.setDefaultCommand();
+    driveFieldOrientedAnglularVelocity.cancel();
+    driveFieldOrientedAngle.schedule();
+  }
+
+  public void setDriveModeTele()
+  {
+    driveFieldOrientedAngle.cancel();
+    driveFieldOrientedAnglularVelocity.schedule();
   }
 
   public void setMotorBrake(boolean brake)
@@ -164,19 +192,20 @@ public class RobotContainer {
     drivebase.setMotorBrake(brake);
   }
 
-  public boolean POVAway(){
-    return driverTurn.getPOV() == 0;
+  public double autoAimX(){
+    if(DriverStation.getAlliance().get() == Alliance.Blue){
+      return Math.atan((drivebase.getPose().getY() - speakerPose2dBlue.getY())/(drivebase.getPose().getX() - speakerPose2dBlue.getX()));
+    }else{
+      return Math.atan((drivebase.getPose().getY() - speakerPose2dRed.getY())/(drivebase.getPose().getX() - speakerPose2dRed.getX()))+Math.PI;
+    }
   }
-
-  public boolean POVLeft(){
-    return driverTurn.getPOV() == 270;
+/*
+  public double autoAimY(){
+    if(drivebase.getPose().getTranslation().getDistance(speakerPose2dBlue) < drivebase.getPose().getTranslation().getDistance(speakerPose2dRed)){
+      return ;
+    }else{
+      return ;
+    }
   }
-
-  public boolean POVRight(){
-    return driverTurn.getPOV() == 90;
-  }
-
-  public boolean POVTowards(){
-    return driverTurn.getPOV() == 180;
-  }
+  */
 }

@@ -37,10 +37,10 @@ public class IntakeCmd extends Command{
             SmartDashboard.putBoolean("INtaking",true);
         }else{
             intakeSubsystem.stopIntake();
+            SmartDashboard.putBoolean("INtaking",false);
         }
 
         SmartDashboard.putNumber("IntakeSpeed", intakeSubsystem.getIntakeSpeed());
-        SmartDashboard.putBoolean("BeamBreak", intakeSubsystem.getBeamBreak());
     }
     
     @Override

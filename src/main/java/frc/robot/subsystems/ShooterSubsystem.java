@@ -17,9 +17,6 @@ public class ShooterSubsystem extends SubsystemBase{
     private final CANSparkMax shooterLeftMotor = new CANSparkMax(ShooterConstants.flywheelLeftID, MotorType.kBrushless);
     private final CANSparkMax shooterRightMotor = new CANSparkMax(ShooterConstants.flywheelRightID, MotorType.kBrushless);
 
-    private final CANSparkMax feedRightMotor = new CANSparkMax(ShooterConstants.stagingRightID, MotorType.kBrushed);
-    private final CANSparkMax feedLeftMotor = new CANSparkMax(ShooterConstants.stagingLeftID, MotorType.kBrushed);
-
     private final CANSparkMax shooterArmMotor = new CANSparkMax(ShooterConstants.pivotID, MotorType.kBrushless);
 
     private PIDController armController = new PIDController(ShooterConstants.armP,ShooterConstants.armI,ShooterConstants.armD);
@@ -104,21 +101,6 @@ public class ShooterSubsystem extends SubsystemBase{
 
     public void setArmVoltage(double power){
         shooterArmMotor.set(Math.min(power ,  0.25));
-    }
-
-    public void feedNotes(){
-        feedLeftMotor.set(-1);
-        feedRightMotor.set(1);
-    }
-
-    public void unfeedNotes(){
-        feedLeftMotor.set(1);
-        feedRightMotor.set(-1);
-    }
-
-    public void stopFeed(){
-        feedLeftMotor.set(0);
-        feedRightMotor.set(0);
     }
     
     public double getShooterSpeedLeft(){// radians/sec

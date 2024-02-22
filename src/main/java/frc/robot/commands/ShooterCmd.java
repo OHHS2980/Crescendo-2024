@@ -15,8 +15,6 @@ public class ShooterCmd extends Command{
 
     private DoubleSupplier shooterSlider;
     private BooleanSupplier shoot;
-    private BooleanSupplier feed;
-    private BooleanSupplier unFeed;
     private DoubleSupplier armSlider;
     private BooleanSupplier ampArm;
 
@@ -34,8 +32,6 @@ public class ShooterCmd extends Command{
 
         this.shooterSlider = shooterSlider;
         this.shoot = shoot;
-        this.feed = feed;
-        this.unFeed = unFeed;
         this.armSlider = armSlider;
         this.ampArm = ampArm;
 
@@ -73,13 +69,7 @@ public class ShooterCmd extends Command{
             shooterSubsystem.setServoPos(0.915,0.04);
         }
 
-        if(feed.getAsBoolean()){
-            shooterSubsystem.feedNotes();
-        }else if(unFeed.getAsBoolean()){
-            shooterSubsystem.unfeedNotes();
-        }else{
-            shooterSubsystem.stopFeed();
-        }
+
         SmartDashboard.putNumber("Encoder degrees", shooterSubsystem.getPosotion());
         SmartDashboard.putNumber("ShooterSpeedLeft", shooterSubsystem.getShooterSpeedLeft());
         SmartDashboard.putNumber("ShooterSpeedRight", shooterSubsystem.getShooterSpeedRight());

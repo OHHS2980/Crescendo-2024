@@ -8,10 +8,12 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.ShooterConstants;
+import frc.robot.subsystems.FeederSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 
 public class shootNoteAuto extends Command{
     private final ShooterSubsystem shooterSubsystem;
+    private final FeederSubsystem feederSubsystem;
     private Supplier<Pose2d> robotPos;
     private final Translation2d speakerPose2dBlue = new Translation2d(0.25, 5.5);
     private final Translation2d speakerPose2dRed = new Translation2d(16.29, 5.5);
@@ -19,12 +21,14 @@ public class shootNoteAuto extends Command{
     private double angle;
 
 
-    public shootNoteAuto(Supplier<Pose2d> robotPos, ShooterSubsystem shooterSubsystem) {
+    public shootNoteAuto(Supplier<Pose2d> robotPos, ShooterSubsystem shooterSubsystem, FeederSubsystem feederSubsystem) {
         this.robotPos = robotPos;
 
         this.shooterSubsystem = shooterSubsystem;
+        this.feederSubsystem = feederSubsystem;
         
         addRequirements(shooterSubsystem);
+        addRequirements(feederSubsystem);
     }
 
     @Override
@@ -47,7 +51,7 @@ public class shootNoteAuto extends Command{
 
     @Override
     public void end(boolean interrupted) {
-        shooterSubsystem.feedNotes();
+        feederSubsystem.feedNotes();
     }
 
     @Override

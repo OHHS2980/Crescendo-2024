@@ -77,7 +77,7 @@ public final class Constants
     public static double shooterI = 0;
     public static double shooterD = 0;
 
-    public static double armP = 0.017;
+    public static double armP = 0.01;
     public static double armI = 0.0;
     public static double armD = 0.0;
   }

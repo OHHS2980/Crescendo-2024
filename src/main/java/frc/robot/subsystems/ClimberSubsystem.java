@@ -48,6 +48,14 @@ public class ClimberSubsystem extends SubsystemBase{
         rightMotor.set(power);
     }
 
+    public void setLeftClimberVoltage(double power){
+        leftMotor.set(power);
+    }
+
+    public void setRightClimberVoltage(double power){
+        rightMotor.set(power);
+    }
+
     public void setClimberPos(double leftPos, double rightPos){//inches
         leftMotor.getPIDController().setReference(leftPos, CANSparkMax.ControlType.kSmartMotion);
         rightMotor.getPIDController().setReference(rightPos, CANSparkMax.ControlType.kSmartMotion);

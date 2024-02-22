@@ -3,7 +3,7 @@
   "startingPose": {
     "position": {
       "x": 0.67,
-      "y": 6.67
+      "y": 6.65
     },
     "rotation": 60.0
   },
@@ -26,24 +26,31 @@
                 "data": {
                   "commands": [
                     {
-                      "type": "named",
-                      "data": {
-                        "name": "Intake"
-                      }
-                    },
-                    {
                       "type": "path",
                       "data": {
                         "pathName": "LeftToLeftNote"
                       }
+                    },
+                    {
+                      "type": "parallel",
+                      "data": {
+                        "commands": [
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "Intake"
+                            }
+                          },
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "CenterNote"
+                            }
+                          }
+                        ]
+                      }
                     }
                   ]
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "CenterNote"
                 }
               },
               {
@@ -64,9 +71,22 @@
                 "data": {
                   "commands": [
                     {
-                      "type": "named",
+                      "type": "sequential",
                       "data": {
-                        "name": "Intake"
+                        "commands": [
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "Intake"
+                            }
+                          },
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "CenterNote"
+                            }
+                          }
+                        ]
                       }
                     },
                     {
@@ -81,12 +101,6 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "CenterNote"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
                   "name": "LoadNote"
                 }
               }
@@ -102,24 +116,31 @@
                 "data": {
                   "commands": [
                     {
-                      "type": "named",
+                      "type": "sequential",
                       "data": {
-                        "name": "Intake"
+                        "commands": [
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "Intake"
+                            }
+                          },
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "CenterNote"
+                            }
+                          }
+                        ]
                       }
                     },
                     {
                       "type": "path",
                       "data": {
-                        "pathName": "CenterNoteToRightNote"
+                        "pathName": "CenterToFarLeft"
                       }
                     }
                   ]
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "CenterNote"
                 }
               },
               {
