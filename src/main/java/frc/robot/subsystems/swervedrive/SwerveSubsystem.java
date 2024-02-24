@@ -58,6 +58,7 @@ public class SwerveSubsystem extends SubsystemBase
    * Swerve drive object.
    */
   private final SwerveDrive swerveDrive;
+  
   /**
    * Maximum speed of the robot in meters per second, used to limit acceleration.
    */
@@ -111,7 +112,7 @@ public class SwerveSubsystem extends SubsystemBase
     swerveDrive.setHeadingCorrection(false); // Heading correction should only be used while controlling the robot via angle.
     
     setupPathPlanner();
-
+    /*
     // A 640 x 480 camera with a 100 degree diagonal FOV.
     cameraProp.setCalibration(640, 480, Rotation2d.fromDegrees(75));
     // Approximate detection noise with average and standard deviation error in pixels.
@@ -131,7 +132,7 @@ public class SwerveSubsystem extends SubsystemBase
     photonCamera.setDriverMode(false);
 
     simVisionSystem.addCamera(photonCameraSim, robotToCam);
-    simVisionSystem.addAprilTags(aprilTagFieldLayout);
+    simVisionSystem.addAprilTags(aprilTagFieldLayout);*/
   }
 
   /**
@@ -331,7 +332,7 @@ public class SwerveSubsystem extends SubsystemBase
   {
     swerveDrive.drive(velocity);
   }
-
+/*
   @Override
   public void periodic()
   {
@@ -341,7 +342,6 @@ public class SwerveSubsystem extends SubsystemBase
     if (currentEstimatedRobotPose.isPresent()) {
       swerveDrive.addVisionMeasurement(
         currentEstimatedRobotPose.get().estimatedPose.toPose2d(), currentEstimatedRobotPose.get().timestampSeconds);
-      latestEstimatedRobotPose = currentEstimatedRobotPose.get();
     }
   }
 
@@ -349,7 +349,7 @@ public class SwerveSubsystem extends SubsystemBase
   public void simulationPeriodic()
   {
     simVisionSystem.update(getPose());
-  }
+  }*/
 
   /**
    * Get the swerve drive kinematics object.

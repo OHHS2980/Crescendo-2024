@@ -1,15 +1,18 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.REVPhysicsSim;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Robot;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.ShooterConstants;
 
@@ -22,9 +25,9 @@ public class ShooterSubsystem extends SubsystemBase{
     private PIDController armController = new PIDController(ShooterConstants.armP,ShooterConstants.armI,ShooterConstants.armD);
     private PIDController shooterLeftController = new PIDController(ShooterConstants.shooterP,ShooterConstants.shooterI,ShooterConstants.shooterD);
     private PIDController shooterRightController = new PIDController(ShooterConstants.shooterP,ShooterConstants.shooterI,ShooterConstants.shooterD);
-
+    
     private Servo servoRight = new Servo(0);
-    private Servo servoLeft = new Servo(1); 
+    private Servo servoLeft = new Servo(1);
 
     private SparkPIDController shooterControllerSparkLeft;
     private SparkPIDController shooterControllerSparkRight;
@@ -156,9 +159,10 @@ public class ShooterSubsystem extends SubsystemBase{
             setShooterVoltage(0);
         }else{
             shooterLeftMotor.set(shooterLeftController.calculate(-encoderLeft.getVelocity(), velocity));
-            shooterRightMotor.set(-shooterRightController.calculate(encoderRight.getVelocity(), velocity));
+            shooterRightMotor.set(-shooterRightController.calculate(encoderRight.getVelocity(), velocity));   
         }
         setArmVoltage(-armController.calculate(armEncoder.getDistance(), angle));
     }
 
+    
 }

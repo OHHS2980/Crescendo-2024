@@ -37,6 +37,7 @@ import frc.robot.commands.shootNoteAuto;
 import frc.robot.commands.shootPosition;
 import frc.robot.commands.swervedrive.drivebase.AbsoluteDriveAdv;
 import frc.robot.commands.swervedrive.drivebase.AbsoluteFieldDrive;
+import frc.robot.subsystems.CameraSubsystem;
 import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.FeederSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
@@ -54,6 +55,7 @@ public class RobotContainer {
   private final IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
   private final ClimberSubsystem climberSubsystem = new ClimberSubsystem();
   private final FeederSubsystem feederSubsystem = new FeederSubsystem();
+  private final CameraSubsystem cameraSubsystem = new CameraSubsystem(drivebase);
 
   private final Translation2d speakerPose2dBlue = new Translation2d(0.0, 5.5);
   private final Translation2d speakerPose2dRed = new Translation2d(16.54, 5.5);
@@ -64,6 +66,9 @@ public class RobotContainer {
 
   private Command driveFieldOrientedAngle;
   private Command driveFieldOrientedAnglularVelocity;
+
+  private ShooterCmd shooterCmd;
+  private shootPosition shootPosition;
 
   public RobotContainer()
   {
@@ -82,28 +87,29 @@ public class RobotContainer {
     //NamedCommands.registerCommand("CenterNotes", new InstantCommand(() -> shooterSubsystem.stopFeed(), shooterSubsystem));
     
     
-    ShooterCmd shooterCmd = new ShooterCmd(shooterSubsystem,
-    () -> rightJoystick.getRawAxis(3),
-    () -> rightJoystick.getRawButton(1),
-    () -> leftJoystick.getRawButton(1),
-    () -> leftJoystick.getRawButton(2),
-    () -> leftJoystick.getRawAxis(3),
-    () -> leftJoystick.getRawButtonPressed(4)
+    shooterCmd = new ShooterCmd(shooterSubsystem,
+    () -> rightJoystick.getRawAxis(3), //shooterSpeed
+    () -> rightJoystick.getRawButton(1), //runFlywheel
+    () -> leftJoystick.getRawAxis(3), //armAim
+    () -> operator.getAButtonPressed()//Amp
     );
 
-    shootPosition shootPosition = new shootPosition(
+    shootPosition = new shootPosition(
       () -> drivebase.getPose(), shooterSubsystem,
-      () -> rightJoystick.getRawButton(1), //shoot
+      () -> leftJoystick.getRawButton(1), //shoot
       () -> operator.getAButtonPressed(), //amp
-      () -> leftJoystick.getRawButton(1), //intake
-      () -> rightJoystick.getRawButtonPressed(2), //aim
-      () -> operator.getXButtonPressed() //source
+      () -> rightJoystick.getRawButton(1), //intake
+      () -> leftJoystick.getRawButtonPressed(2), //aim
+      () -> operator.getYButtonPressed(), //source
+      () -> operator.getXButtonPressed(), //stow
+      () -> leftJoystick.getRawAxis(3) //offset
     );
 
     feederWheelCmd feederWheelCmd = new feederWheelCmd(feederSubsystem,
       () -> rightJoystick.getRawButton(4), //shoot
-      () -> leftJoystick.getRawButton(1), //intake
-      () -> operator.getBButton() //center
+      () -> rightJoystick.getRawButton(1), //intake
+      () -> operator.getYButton(), //center
+      () -> operator.getBButton() //unfeed note
     );
 
     ClimberCmd climberCmd = new ClimberCmd(climberSubsystem,
@@ -111,7 +117,10 @@ public class RobotContainer {
       () -> operator.getRightY() //Right climber
     );
 
-    IntakeCmd intakeCmd = new IntakeCmd(intakeSubsystem, () -> leftJoystick.getRawButton(1));
+    IntakeCmd intakeCmd = new IntakeCmd(intakeSubsystem,
+      () -> rightJoystick.getRawButton(1), //intake
+      () -> operator.getLeftBumper() //outtake
+    );
 
     // Applies deadbands and inverts controls because joysticks
     // are back-right positive while robot
@@ -120,23 +129,24 @@ public class RobotContainer {
     // right stick controls the angular velocity of the robot
     
     driveFieldOrientedAnglularVelocity = drivebase.driveCommand(
-      () -> MathUtil.applyDeadband(rightJoystick.getRawAxis(OIConstants.TranslationY) * (DriverStation.getAlliance().get() == Alliance.Blue ? -1: 1),
+      () -> MathUtil.applyDeadband(leftJoystick.getRawAxis(OIConstants.TranslationY) * (DriverStation.getAlliance().get() == Alliance.Blue ? -1: 1),
          OperatorConstants.LEFT_Y_DEADBAND),
-      () -> MathUtil.applyDeadband(rightJoystick.getRawAxis(OIConstants.TranslationX) * (DriverStation.getAlliance().get() == Alliance.Blue ? -1: 1),
+      () -> MathUtil.applyDeadband(leftJoystick.getRawAxis(OIConstants.TranslationX) * (DriverStation.getAlliance().get() == Alliance.Blue ? -1: 1),
         OperatorConstants.LEFT_X_DEADBAND),
-      () -> -leftJoystick.getRawAxis(0)
+      () -> -rightJoystick.getRawAxis(0)
       );
 
     driveFieldOrientedAngle = new AbsoluteFieldDrive(
       drivebase,   
-      () -> MathUtil.applyDeadband(rightJoystick.getRawAxis(OIConstants.TranslationY) * (DriverStation.getAlliance().get() == Alliance.Blue ? -1: 1),
+      () -> MathUtil.applyDeadband(leftJoystick.getRawAxis(OIConstants.TranslationY) * (DriverStation.getAlliance().get() == Alliance.Blue ? -1: 1),
          OperatorConstants.LEFT_Y_DEADBAND),
-      () -> MathUtil.applyDeadband(rightJoystick.getRawAxis(OIConstants.TranslationX) * (DriverStation.getAlliance().get() == Alliance.Blue ? -1: 1),
+      () -> MathUtil.applyDeadband(leftJoystick.getRawAxis(OIConstants.TranslationX) * (DriverStation.getAlliance().get() == Alliance.Blue ? -1: 1),
         OperatorConstants.LEFT_X_DEADBAND),
       () -> autoAimX()
       );
 
     driveFieldOrientedAngle.cancel();
+    shooterCmd.cancel();
     driveFieldOrientedAnglularVelocity.schedule();
 
     drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
@@ -152,7 +162,7 @@ public class RobotContainer {
   {
     // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
 
-    new JoystickButton(rightJoystick, 3).onTrue((new InstantCommand(drivebase::zeroGyro)));
+    new JoystickButton(leftJoystick, 3).onTrue((new InstantCommand(drivebase::zeroGyro)));
     new JoystickButton(leftJoystick,
                        4).whileTrue(
         Commands.deferredProxy(() -> drivebase.driveToPose(
@@ -160,8 +170,8 @@ public class RobotContainer {
                               ));
                               
     new JoystickButton(leftJoystick, 3).whileTrue(new RepeatCommand(new InstantCommand(drivebase::lock, drivebase)));
-    new JoystickButton(rightJoystick, 2).onTrue(new InstantCommand(() -> setDriveModeAutoAim()));
-    new JoystickButton(rightJoystick, 2).onFalse(new InstantCommand(() -> setDriveModeTele()));
+    new JoystickButton(leftJoystick, 2).onTrue(new InstantCommand(() -> setDriveModeAutoAim()));
+    new JoystickButton(leftJoystick, 2).onFalse(new InstantCommand(() -> setDriveModeTele()));
   }
 
   /**
@@ -187,6 +197,16 @@ public class RobotContainer {
     driveFieldOrientedAnglularVelocity.schedule();
   }
 
+  public void setShootModeAuto(){
+    shooterCmd.cancel();
+    shootPosition.schedule();
+  }
+
+  public void setShootModeTele(){
+    shootPosition.cancel();
+    shooterCmd.schedule();
+  }
+
   public void setMotorBrake(boolean brake)
   {
     drivebase.setMotorBrake(brake);
@@ -208,4 +228,19 @@ public class RobotContainer {
     }
   }
   */
+  public CameraSubsystem getCameraSubsystem(){
+    return cameraSubsystem;
+  }
+
+  public ClimberSubsystem getClimberSubsystem(){
+    return climberSubsystem;
+  }
+
+  public IntakeSubsystem getIntakeSubsystem(){
+    return intakeSubsystem;
+  }
+
+  public ShooterSubsystem getShooterSubsystem(){
+    return shooterSubsystem;
+  }
 }

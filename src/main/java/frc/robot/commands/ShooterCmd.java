@@ -25,8 +25,6 @@ public class ShooterCmd extends Command{
     public ShooterCmd(ShooterSubsystem shooterSubsystem,
         DoubleSupplier shooterSlider,
         BooleanSupplier shoot,
-        BooleanSupplier feed,
-        BooleanSupplier unFeed,
         DoubleSupplier armSlider,
         BooleanSupplier ampArm) {
 
@@ -55,7 +53,9 @@ public class ShooterCmd extends Command{
             //shooterSubsystem.setShooterVoltage(0);
         }
 
-        shooterSubsystem.setArmPosition(((armSlider.getAsDouble() + 1)/2)*(311-234) + 234);
+
+
+        shooterSubsystem.setArmVoltage(armSlider.getAsDouble());
 
         armSetpoint = shooterSubsystem.getArmSetpoint();
 

@@ -20,19 +20,24 @@ public class shootPosition extends Command{
 
     private double velocityShoot = -3900;
     private double velocityAmp = -4800;
+    private double sourceVelocity = 1000;
     private double angle  = 290;
 
     private Boolean autoAim = false;
     private Boolean ampOut = false;
+    private Boolean sourceOut = false;
 
     private BooleanSupplier shoot;
     private BooleanSupplier amp;
     private BooleanSupplier intake;
     private BooleanSupplier aim;
     private BooleanSupplier source;
+    private BooleanSupplier stow;
+
+    private DoubleSupplier offset;
 
 
-    public shootPosition(Supplier<Pose2d> robotPos, ShooterSubsystem shooterSubsystem, BooleanSupplier shoot, BooleanSupplier amp, BooleanSupplier intake, BooleanSupplier aim, BooleanSupplier source) {
+    public shootPosition(Supplier<Pose2d> robotPos, ShooterSubsystem shooterSubsystem, BooleanSupplier shoot, BooleanSupplier amp, BooleanSupplier intake, BooleanSupplier aim, BooleanSupplier source, BooleanSupplier stow, DoubleSupplier offest) {
         this.robotPos = robotPos;
 
         this.shoot = shoot;
@@ -40,6 +45,9 @@ public class shootPosition extends Command{
         this.intake = intake;
         this.aim = aim;
         this.source = source;
+        this.stow = stow;
+
+        this.offset = offset;
 
         this.shooterSubsystem = shooterSubsystem;
         
@@ -56,34 +64,55 @@ public class shootPosition extends Command{
         if(aim.getAsBoolean()){
             autoAim = true;
             ampOut = false;
+            sourceOut = false;
         }
 
         if(amp.getAsBoolean()){
             ampOut = true;
             autoAim = false;
-        }
-
-        if(autoAim){
-            angle = -180*Math.atan(1.85/Math.min(robotPos.get().getTranslation().getDistance(speakerPose2dBlue), robotPos.get().getTranslation().getDistance(speakerPose2dRed)))/Math.PI + 339;
-            angle = Math.min(Math.max(angle, 257), 310);
-        }
-
-        if(ampOut){
-            shooterSubsystem.setServoPos(0.915,0.04);
-            angle = 235;
-        }else{
-            shooterSubsystem.setServoPos(0.16, 0.79);
+            sourceOut = false;
         }
 
         if(intake.getAsBoolean()){
             angle = 276;
             autoAim = false;
             ampOut = false;
+            sourceOut = false;
+        }
+
+        if(source.getAsBoolean()){
+            autoAim = false;
+            ampOut = false;
+            sourceOut = true;
+        }
+
+        if(stow.getAsBoolean()){
+            angle = 305;
+            autoAim = false;
+            ampOut = false;
+            sourceOut = false;
+        }
+
+        if(ampOut){
+            shooterSubsystem.setServoPos(0.915,0.04);
+            angle = 235;
+        }else if(sourceOut){
+            shooterSubsystem.setServoPos(0.865,0.09);
+            angle = 235;
+        }else{
+            shooterSubsystem.setServoPos(0.16, 0.79);
+        }
+        
+        if(autoAim){
+            angle = -180*Math.atan(2.1/Math.min(robotPos.get().getTranslation().getDistance(speakerPose2dBlue), robotPos.get().getTranslation().getDistance(speakerPose2dRed)))/Math.PI + 339 + -offset.getAsDouble()*5;
+            angle = Math.min(Math.max(angle, 257), 310);
         }
 
         if(shoot.getAsBoolean()){
             if(ampOut){
                 shooterSubsystem.setShooterSpeed(velocityAmp);
+            }else if(sourceOut){
+                shooterSubsystem.setShooterSpeed(sourceVelocity);
             }else{
                 shooterSubsystem.setShooterSpeed(velocityShoot);
             } 

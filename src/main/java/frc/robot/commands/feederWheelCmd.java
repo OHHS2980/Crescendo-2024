@@ -21,14 +21,16 @@ public class feederWheelCmd extends Command{
     private BooleanSupplier shoot;
     private BooleanSupplier intake;
     private BooleanSupplier center;
+    private BooleanSupplier back;
 
-    public feederWheelCmd(FeederSubsystem feederSubsystem, BooleanSupplier shoot, BooleanSupplier intake, BooleanSupplier center) {
+    public feederWheelCmd(FeederSubsystem feederSubsystem, BooleanSupplier shoot, BooleanSupplier intake, BooleanSupplier center, BooleanSupplier back) {
 
         this.feederSubsystem = feederSubsystem;
 
         this.shoot = shoot;
         this.intake = intake;
         this.center = center;
+        this.back = back;
         
         addRequirements(feederSubsystem);
     }
@@ -41,7 +43,7 @@ public class feederWheelCmd extends Command{
     @Override
     public void execute() {
         
-        if(shoot.getAsBoolean() || intake.getAsBoolean() || center.getAsBoolean()){
+        if(shoot.getAsBoolean() || intake.getAsBoolean() || center.getAsBoolean() || back.getAsBoolean()){
             if(shoot.getAsBoolean()){
                 feederSubsystem.feedNotes();
             }
@@ -59,6 +61,9 @@ public class feederWheelCmd extends Command{
                 
             }
 
+            if(back.getAsBoolean()){
+                feederSubsystem.unfeedNotes();
+            }
         }else{
             feederSubsystem.stopFeed();
         }

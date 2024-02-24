@@ -13,13 +13,16 @@ public class IntakeCmd extends Command{
     private final IntakeSubsystem intakeSubsystem;
 
     private BooleanSupplier intake;
+    private BooleanSupplier outtake;
     private Boolean noteDetected;
 
 
     public IntakeCmd(IntakeSubsystem intakeSubsystem,
-        BooleanSupplier intake) {
+        BooleanSupplier intake,
+        BooleanSupplier outtake) {
 
         this.intake = intake;
+        this.outtake = outtake;
 
         this.intakeSubsystem = intakeSubsystem;
         addRequirements(intakeSubsystem);
@@ -35,6 +38,8 @@ public class IntakeCmd extends Command{
         if(intake.getAsBoolean()){ 
             intakeSubsystem.setIntakeVoltage(-1);
             SmartDashboard.putBoolean("INtaking",true);
+        }else if(outtake.getAsBoolean() ){
+            intakeSubsystem.setIntakeVoltage(1);
         }else{
             intakeSubsystem.stopIntake();
             SmartDashboard.putBoolean("INtaking",false);

@@ -48,8 +48,8 @@ public final class Constants
     public static final int TranslationX  = 0;
     public static final int Rotation = 0;
 
-    public static final int DriveJoystick  = 0;
-    public static final int TurnJoystick = 1;
+    public static final int TurnJoystick  = 1;
+    public static final int DriveJoystick = 0;
     public static final int operatorJoystick = 2;
   }
 

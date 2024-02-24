@@ -10,17 +10,25 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Robot;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.ShooterConstants;
 
 public class FeederSubsystem extends SubsystemBase{
-    private final CANSparkMax feedRightMotor = new CANSparkMax(ShooterConstants.stagingRightID, MotorType.kBrushless);
-    private final CANSparkMax feedLeftMotor = new CANSparkMax(ShooterConstants.stagingLeftID, MotorType.kBrushless);
+    private final CANSparkMax feedRightMotor;
+    private final CANSparkMax feedLeftMotor;
 
     
     private DigitalInput initialBeamSensor = new DigitalInput(IntakeConstants.initialBeamSensorPort);
 
     public FeederSubsystem(){
+        if(Robot.isReal()){
+            feedLeftMotor = new CANSparkMax(ShooterConstants.stagingLeftID, MotorType.kBrushed);
+            feedRightMotor = new CANSparkMax(ShooterConstants.stagingRightID, MotorType.kBrushed);
+        }else{
+            feedLeftMotor = new CANSparkMax(ShooterConstants.stagingLeftID, MotorType.kBrushless);
+            feedRightMotor = new CANSparkMax(ShooterConstants.stagingRightID, MotorType.kBrushless);
+        }
     }
 
     public void feedNotes(){

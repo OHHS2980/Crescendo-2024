@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
@@ -13,6 +14,10 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import java.io.File;
 import java.io.IOException;
+
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.REVPhysicsSim;
+
 import swervelib.parser.SwerveParser;
 
 /**
@@ -78,6 +83,10 @@ public class Robot extends TimedRobot
     // block in order for anything in the Command-based framework to work.
 
     //SmartDashboard.putString("AprilTag", m_robotContainer.drivebase.getAprilTagMeasurement().toString());
+    m_robotContainer.getCameraSubsystem().periodicCall();
+    if(!Robot.isReal()){
+      m_robotContainer.getCameraSubsystem().simulationPeriodicCall();
+    }
     CommandScheduler.getInstance().run();
   }
 

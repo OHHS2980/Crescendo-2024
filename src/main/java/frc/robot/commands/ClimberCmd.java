@@ -32,18 +32,14 @@ public class ClimberCmd extends Command{
     
     @Override
     public void execute() {
-        if(rightClimber.getAsDouble() > 0.1){
-            climberSubsystem.setRightClimberVoltage(0.5);
-        }else if(rightClimber.getAsDouble() < -0.1){
-            climberSubsystem.setRightClimberVoltage(-0.5);
+        if(rightClimber.getAsDouble() > 0.1 || rightClimber.getAsDouble() < -0.1){
+            climberSubsystem.setRightClimberVoltage(Math.pow(rightClimber.getAsDouble(), 2));
         }else{
             climberSubsystem.setRightClimberVoltage(0);
         }
 
-        if(leftClimber.getAsDouble() > 0.1){
-            climberSubsystem.setLeftClimberVoltage(0.5);
-        }else if(leftClimber.getAsDouble() < -0.1){
-            climberSubsystem.setLeftClimberVoltage(-0.5);
+        if(leftClimber.getAsDouble() > 0.1 || leftClimber.getAsDouble() < -0.1){
+            climberSubsystem.setLeftClimberVoltage(Math.pow(leftClimber.getAsDouble(), 2));
         }else{
             climberSubsystem.setLeftClimberVoltage(0);
         }
